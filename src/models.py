@@ -6,9 +6,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
-    name = db.Column(String(250), nullable=False)
-    address1 = db.Column(String(250), nullable=False) 
-    favoritos = db.relationship('Favoritos', backref='user') #ver si tengo que agregar el backref='nombredelavariable'
+    name = db.Column(db.String(250), nullable=False)
+    address1 = db.Column(db.String(250), nullable=False) 
+    favoritos = db.relationship('Favoritos', backref='owner') 
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -24,7 +24,7 @@ class User(db.Model):
     
 
 class Personajes(db.Model):
-    __tablename__ = 'characters'
+    # __tablename__ = 'characters'
     id = db.Column(db.Integer, primary_key=True)
     favoritos = db.relationship('Favoritos', backref='personajes')
     name = db.Column(db.String(250), nullable=False)
@@ -40,7 +40,7 @@ class Personajes(db.Model):
         }
 
 class Planets(db.Model):
-    __tablename__ = 'planetas'
+    # __tablename__ = 'planetas'
     id = db.Column(db.Integer, primary_key=True)
     favoritos = db.relationship('Favoritos', backref='planets')
     name = db.Column(db.String(250), nullable=False)
@@ -54,15 +54,15 @@ class Planets(db.Model):
         }
 
 class Favoritos(db.Model):
-    __tablename__ = 'favoritos'
+    # __tablename__ = 'favoritos'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    personajes_id = db.Column(db.Integer, db.ForeignKey('personajes.id'))
-    planets_id = db.Column(db.Integer, db.ForeignKey('planets.id'))
+    personaje_id = db.Column(db.Integer, db.ForeignKey('personajes.id'), nullable=True)
+    planet_id = db.Column(db.Integer, db.ForeignKey('planets.id'), nullable=True)
     def serialize(self):
         return{
             "id": self.id,
             "user_id": self.user_id,
-            "personajes_id": self.personajes_id,
-            "planets_id": self.planets_id
+            "personaje_id": self.personaje_id,
+            "planet_id": self.planet_id
         }

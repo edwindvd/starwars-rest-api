@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -19,6 +20,8 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+
+url_base = "https://www.swapi.tech/api"
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -41,9 +44,11 @@ def handle_hello():
 
 @app.route('/people', methods=['GET'])
 def get_people():
-    #consultar todos los personajes
+    #consultar todos los personajes                 #query params investigar
+    personajes = requests.get(f'{url_base}/people?page=1&limit=1000')
     #devolver personajes serealizadas
-    return 'personajes consultados', 200
+    response = personajes.json()
+    return jsonify(response), 200
 
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
@@ -65,9 +70,20 @@ def get_planet():
 @app.route('/planets/<int:planet_id>', methods=['GET'])
 def get_planetid(planet_id):
     # consultar todos los planeta individual en DB
+    planet = requests.get(f'{url_base}/planets/{planet_id}')
     #si no se encuentra devolver alerta de que no se encuentra ese registro
     # devolver planeta serializado
-    return "informacion de Planeta consultado", 200
+    response = planet.json()
+    return jsonify(response), 200
+
+@app.route('/favorite/<string:type>', methods=['POST'])
+def post_favorite(type):
+    #esta ruta va a ser JWT require
+    body = request.json
+    fav_id = body["fav_id"]
+    name = body["name"]
+    print(f'{url_base}/{type}/{fav_id}')
+    return jsonify({"fav_id": fav_id,"name": name, "type": type}), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

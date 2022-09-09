@@ -52,20 +52,24 @@ def get_people():
 
 @app.route('/people/<int:people_id>', methods=['GET'])
 def get_person(people_id):
-    person = 'el query del coño'
     # consultar personaje por id en DB y guardar el resultado en una variable person
+    data = requests.get(f'{url_base}/people/{people_id}')
     #mostrar la informacion del personaje y si no se encuentra, mostrar un error
     # devolver personaje serializadas
-    if person != None:    
-        return "Personaje consultado", 200
-    else:
-        return 'go fuck urself', 404
+    persona = data.json()
+    return jsonify({"result":persona}),200
+    # if person != None:    
+    #     return "Personaje consultado", 200
+    # else:
+    #     return 'go fuck urself', 404
     
 @app.route('/planets', methods=['GET'])
 def get_planet():
     # consultar todos los planetas en DB
+    planetas = requests.get(f'{url_base}/planets?page=1&limit=1000')
     # devolver planetas serializados
-    return "Planetas consultados", 200
+    response = planetas.json()
+    return jsonify(response), 200
 
 @app.route('/planets/<int:planet_id>', methods=['GET'])
 def get_planetid(planet_id):

@@ -33,14 +33,65 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
-@app.route('/user', methods=['GET'])
+@app.route('/users', methods=['GET'])
 def handle_hello():
 
-    response_body = {
-        "msg": "Hello, this is your GET /user response "
-    }
+    all_users = User.query.all()
+    results = []
+    for user in all_users:
+        results.append(user.serialize())
+    return jsonify({"results":results})
 
-    return jsonify(response_body), 200
+#mandar un user y un password, 
+
+@app.route("/login", methods=["POST"])
+def login():
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+    if username != "test" or password != "test":
+        return jsonify({"msg": "Bad username or password"}), 401
+
+    access_token = create_access_token(identity=username)
+    return jsonify(access_token=access_token)
+
+@app.route('/favorite/<string:type>', methods=['POST'])
+def post_favorite(type):
+    #esta ruta va a se JWT requiere
+    body = request.json
+    user_id = body['userId']
+    user_name = body['name']
+    type_id = body['typeId']
+    url = f'https://3000-4geeksacade-flaskresthe-lglnrq27dx0.ws-us64.gitpod.io/{type}/{type_id}'
+    new_favorite = Favorite(
+        name = user_name,
+        url = url,
+        user_id = user_id
+    ) 
+    db.session.add(new_favorite)
+    try:
+        db.session.commit()
+        return jsonify(new_favorite.serialize()), 201
+    except Exception as error:
+        db.session.rollback()
+        return jsonify(error.args), 500   
+    
+@app.route('/users/favorites', methods=['GET'])
+def user_favorites():
+    user_id = 1
+    favorites = Favorite.query.filter_by(user_id = user_id)
+    result = list(map(lambda favorite:favorite.serialize(),favorites))
+    return jsonify(result), 200
+
+@app.route('/favorites/<int:favorite_id', methods=['DELETE'])
+def delete_favorite(favorite_id):
+    favorite = Favorite.query.filter_by(id= favorite_id).one_or_none()
+    if favorite is None:
+        return jsonify({"message": 'Usuario no encontrado'}), 404
+    deleted = favorite.delete()
+    if deleted is True:
+        return jsonify([]), 204    
+    return jsonify({"message":'Ocurrio un error'}), 500
+
 
 @app.route('/people', methods=['GET'])
 def get_people():
